@@ -56,6 +56,12 @@ html, body {
 .panel-header h5 {
     margin: 0;
     font-weight: 600;
+    margin-right: auto; /* Pushes other items to the right */
+}
+
+/* Align the edit button next to the title */
+#edit-node-btn {
+    margin-right: 1rem;
 }
 
 /* Body section of the panel, where content is displayed */
@@ -64,6 +70,20 @@ html, body {
     overflow-y: auto; /* Adds a scrollbar if content is too long */
     flex-grow: 1; /* Allows the body to fill available space */
 }
+
+/* Style for the textarea in edit mode */
+.panel-body textarea {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 0.5rem;
+    resize: none;
+    box-sizing: border-box; /* Ensures padding doesn't add to width/height */
+    font-family: inherit;
+    font-size: inherit;
+}
+
 
 /* View Controls Container */
 #view-controls {

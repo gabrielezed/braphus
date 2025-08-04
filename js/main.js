@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const zoomOutBtn = document.getElementById('zoom-out-btn');
     const resetViewBtn = document.getElementById('reset-view-btn');
     const searchInput = document.getElementById('search-input');
+    const exportGraphBtn = document.getElementById('export-graph-btn');
+    const loadNewGraphBtn = document.getElementById('load-new-graph-btn');
+
+    // --- Application State ---
+    let selectedNode = null; // Holds the data of the currently selected node
 
     // --- Core Application Logic ---
 
@@ -40,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {object} nodeData - The data object of the tapped node.
      */
     function onNodeTap(nodeData) {
+        selectedNode = nodeData; // Store the selected node's data
         ui.openSidePanel(nodeData.label, nodeData.content);
         ui.moveSearchContainer(true); // Move search bar out of the way
     }
@@ -52,6 +58,43 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.closeSidePanel();
         graph.resetHighlights();
         ui.moveSearchContainer(false); // Move search bar back
+        selectedNode = null; // Deselect the node
+    }
+
+    /**
+     * Handles the logic for exporting the current graph data to a .json file.
+     */
+    function exportGraph() {
+        const graphData = graph.exportGraphData();
+        if (!graphData || !graphData.elements || (!graphData.elements.nodes && !graphData.elements.edges)) {
+            alert('There is no graph data to export.');
+            return;
+        }
+
+        const exportObject = {
+            nodes: graphData.elements.nodes || [],
+            edges: graphData.elements.edges || []
+        };
+
+        const jsonString = JSON.stringify(exportObject, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'braphus_export.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    }
+
+    /**
+     * Resets the application to its initial state to load a new graph.
+     */
+    function loadNewGraph() {
+        closePanelAndReset(); // Close panel and clear selection
+        graph.destroy();      // Destroy the Cytoscape instance
+        ui.showWelcomeScreen(); // Show the file dropzone
     }
 
     // --- Module Initializations ---
@@ -60,25 +103,37 @@ document.addEventListener('DOMContentLoaded', () => {
     initFileHandler(dropZone, fileInput, selectFileBtn, onFileLoaded);
 
     // 2. Initialize the UI Module
-    // Pass a callback for when the user clicks the 'close' button on the side panel.
     ui.initUI({
         onClosePanel: closePanelAndReset
     });
 
-    // 3. Initialize the Graph Module
-    // Pass the container and callbacks for node and canvas taps.
+    // 3. Initialize the Editor
+    ui.initEditor({
+        getRawContent: () => {
+            return selectedNode ? graph.getNodeContent(selectedNode.id) : '';
+        },
+        onSave: (newContent) => {
+            if (selectedNode) {
+                graph.updateNodeContent(selectedNode.id, newContent);
+                selectedNode.content = newContent;
+            }
+        }
+    });
+
+    // 4. Initialize the Graph Module
     graph.init({
         container: cyContainer,
         onNodeTap: onNodeTap,
         onCanvasTap: closePanelAndReset
     });
 
-
     // --- Event Listeners for Controls ---
 
     zoomInBtn.addEventListener('click', graph.zoomIn);
     zoomOutBtn.addEventListener('click', graph.zoomOut);
     resetViewBtn.addEventListener('click', graph.fit);
+    exportGraphBtn.addEventListener('click', exportGraph);
+    loadNewGraphBtn.addEventListener('click', loadNewGraph);
 
     searchInput.addEventListener('input', (e) => {
         graph.search(e.target.value);

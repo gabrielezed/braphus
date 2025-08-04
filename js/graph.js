@@ -120,6 +120,39 @@ export function search(query) {
     }
 }
 
+/**
+ * Updates the 'content' data property of a specific node.
+ * @param {string} nodeId - The ID of the node to update.
+ * @param {string} newContent - The new Markdown content.
+ */
+export function updateNodeContent(nodeId, newContent) {
+    if (!cy) return;
+    const node = cy.getElementById(nodeId);
+    if (node) {
+        node.data('content', newContent);
+    }
+}
+
+/**
+ * Retrieves the 'content' data property of a specific node.
+ * @param {string} nodeId - The ID of the node to retrieve content from.
+ * @returns {string|null} - The node's content or null if not found.
+ */
+export function getNodeContent(nodeId) {
+    if (!cy) return null;
+    const node = cy.getElementById(nodeId);
+    return node ? node.data('content') : null;
+}
+
+/**
+ * Exports the entire graph data as a JSON object.
+ * @returns {object|null} - The graph data or null if the graph isn't initialized.
+ */
+export function exportGraphData() {
+    if (!cy) return null;
+    return cy.json();
+}
+
 
 /**
  * Destroys the current Cytoscape instance if it exists.
