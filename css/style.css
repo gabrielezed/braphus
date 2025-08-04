@@ -82,12 +82,53 @@ html, body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
-/* NUOVO: Search Input Container */
+/* Search Input Container */
 #search-container {
     position: absolute;
     top: 20px;
     right: 20px;
     width: 250px;
     z-index: 20;
-    transition: transform 0.3s ease-in-out; /* <-- Aggiungi questa riga */
+    transition: transform 0.3s ease-in-out;
+}
+
+/* --- NEW STYLES --- */
+
+/* Full-screen overlay for the welcome message and file drop zone */
+#welcome-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(248, 249, 250, 0.95); /* Semi-transparent light background */
+    z-index: 30; /* Highest z-index to cover everything */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* The area where users can drop files */
+#drop-zone {
+    width: 80%;
+    max-width: 500px;
+    padding: 4rem 2rem;
+    border: 3px dashed #ced4da; /* Dashed border */
+    border-radius: 10px;
+    background-color: #ffffff;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+#drop-zone p {
+    color: #6c757d;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+/* Style for when a file is being dragged over the drop zone */
+#drop-zone.dragover {
+    border-color: #0d6efd; /* Highlight with blue border */
+    background-color: #e9f2ff; /* Light blue background */
 }
