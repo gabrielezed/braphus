@@ -1,71 +1,72 @@
 # Braphus
 
-Braphus è un'applicazione web minimalista per visualizzare e navigare roadmap di apprendimento sotto forma di grafi di conoscenza interattivi. Ispirato alla necessità di un apprendimento non lineare, permette agli utenti di esplorare argomenti complessi partendo da qualsiasi punto e seguendo le connessioni tra le idee.
+Braphus is a minimalist web application for visualizing and navigating learning roadmaps as interactive knowledge graphs. Inspired by the need for non-linear learning, it allows users to explore complex topics by starting at any point and following the connections between ideas.
 
 ---
 
-## Funzionalità
+## Features
 
-* **Visualizzazione a Grafo:** Renderizza nodi (argomenti) e archi (connessioni) in un layout gerarchico.
-* **Navigazione Interattiva:** Clicca su un nodo per visualizzarne il contenuto e le relazioni.
-* **Contenuto Rich Text:** I nodi supportano contenuti scritti in **Markdown**.
-* **Barra di Ricerca:** Trova rapidamente i nodi nel grafo digitandone il nome.
-* **Controlli di Vista:** Funzioni di Zoom In, Zoom Out e Reset della vista per una facile navigazione.
-* **Design Responsivo:** L'interfaccia si adatta per una buona usabilità su diversi schermi.
-
----
-
-## Come Eseguirlo
-
-Poiché l'applicazione utilizza l'API `fetch` per caricare file locali (`.json`), non può essere eseguita semplicemente aprendo `index.html` nel browser a causa delle policy di sicurezza (CORS).
-
-È necessario servirla tramite un **server web locale**. Il modo più semplice è usare l'estensione **Live Server** di Visual Studio Code, oppure eseguire un server Python:
-
-1.  Apri un terminale nella cartella radice `braphus/`.
-2.  Esegui il comando (richiede Python 3):
-    ```bash
-    python -m http.server
-    ```
-3.  Apri il tuo browser e vai all'indirizzo `http://localhost:8000`.
+* **Graph Visualization:** Renders nodes (topics) and edges (connections) in a hierarchical layout.
+* **Interactive Navigation:** Click a node to view its content and relationships.
+* **Rich Text Content:** Nodes support content written in **Markdown**.
+* **Search Bar:** Quickly find nodes in the graph by typing their name.
+* **View Controls:** Zoom In, Zoom Out, and Reset view functions for easy navigation.
+* **Responsive Design:** The interface adapts for good usability on various screen sizes.
 
 ---
 
-## Struttura del Progetto
+## How to Run It
 
+Since the application uses the `fetch` API to load local files (`.json`), it cannot be run by simply opening `index.html` in your browser due to security policies (CORS).
+
+You must serve it using a **local web server**. The easiest way is to use the **Live Server** extension for Visual Studio Code, or you can run a Python server:
+
+1. Open a terminal in the `braphus/` root folder.
+2. Run the command (requires Python 3):
+    ```bash
+    python -m http.server
+    ```
+3. Open your browser and go to `http://localhost:8000`.
+
+---
+
+## Project Structure
+
+````
 
 /braphus
-|-- index.html              \# Struttura principale della pagina
+|-- index.html              \# Main page structure
 |-- /css
-|   |-- style.css           \# Fogli di stile personalizzati
+|   |-- style.css           \# Custom stylesheets
 |-- /js
-|   |-- main.js             \# Logica dell'applicazione (Cytoscape, eventi, etc.)
+|   |-- main.js             \# Application logic (Cytoscape, events, etc.)
 |-- /data
-|   |-- gestalt-therapy.json \# File di dati di esempio per il grafo
-|-- README.md               \# Questo file
+|   |-- gestalt-therapy.json \# Example data file for the graph
+|-- README.md               \# This file
 
-```
-
----
-
-## Dati del Grafo
-
-Per creare il tuo grafo, modifica o crea un nuovo file `.json` nella cartella `/data` seguendo questo formato:
-
-* **`nodes`**: Un array di oggetti, dove ogni oggetto rappresenta un nodo.
-    * `data.id`: Un identificatore univoco (stringa).
-    * `data.label`: L'etichetta che apparirà sul nodo.
-    * `data.content`: Il testo in formato Markdown che apparirà nel pannello laterale.
-* **`edges`**: Un array di oggetti che definisce le connessioni.
-    * `data.source`: L'`id` del nodo di partenza.
-    * `data.target`: L'`id` del nodo di arrivo.
+````
 
 ---
 
-## Tecnologie Utilizzate
+## Graph Data
+
+To create your own graph, edit or create a new `.json` file in the `/data` folder following this format:
+
+* **`nodes`**: An array of objects, where each object represents a node.
+    * `data.id`: A unique identifier (string).
+    * `data.label`: The label that will appear on the node.
+    * `data.content`: The Markdown-formatted text that will appear in the sidebar.
+* **`edges`**: An array of objects that defines the connections.
+    * `data.source`: The `id` of the starting node.
+    * `data.target`: The `id` of the destination node.
+
+---
+
+## Technologies Used
 
 * **Vanilla JavaScript (ES6+)**
 * **HTML5** & **CSS3**
-* **[Cytoscape.js](https://js.cytoscape.org/)**: Per la renderizzazione e l'interazione con il grafo.
-* **[Dagre.js](https://github.com/dagrejs/dagre)**: Per il layout gerarchico del grafo.
-* **[Marked.js](https://marked.js.org/)**: Per l'interpretazione del Markdown.
-* **[Bootstrap 5](https://getbootstrap.com/)**: Per alcuni componenti base dell'UI e per le icone.
+* **[Cytoscape.js](https://js.cytoscape.org/)**: For rendering and interacting with the graph.
+* **[Dagre.js](https://github.com/dagrejs/dagre)**: For the hierarchical graph layout.
+* **[Marked.js](https://marked.js.org/)**: For interpreting Markdown.
+* **[Bootstrap 5](https://getbootstrap.com/)**: For some basic UI components and icons.
