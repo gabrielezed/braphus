@@ -1,0 +1,93 @@
+/* General body and html styles */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevents scrollbars on the main page */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Container for the Cytoscape graph.
+  It's positioned to fill the entire viewport.
+*/
+#cy {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Sits behind the content panel */
+}
+
+/* Side panel for displaying node content.
+  Positioned fixed on the right side of the screen.
+  It uses flexbox to structure its header and body.
+*/
+#content-panel {
+    position: fixed;
+    top: 0;
+    right: 0; /* Will be animated later */
+    width: 400px;
+    max-width: 90%; /* Ensures usability on smaller screens */
+    height: 100%;
+    background-color: #ffffff;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1); /* Adds depth */
+    z-index: 10; /* Sits on top of the graph */
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease-in-out; /* For smooth slide-in/out */
+}
+
+/* Hides the panel by moving it off-screen */
+#content-panel.d-none {
+    transform: translateX(100%);
+}
+
+/* Header section of the panel */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #dee2e6; /* Light gray border */
+    flex-shrink: 0; /* Prevents the header from shrinking */
+}
+
+.panel-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Body section of the panel, where content is displayed */
+.panel-body {
+    padding: 1.5rem;
+    overflow-y: auto; /* Adds a scrollbar if content is too long */
+    flex-grow: 1; /* Allows the body to fill available space */
+}
+
+/* View Controls Container */
+#view-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+#view-controls .btn {
+    width: 42px;
+    height: 42px;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+/* NUOVO: Search Input Container */
+#search-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 250px;
+    z-index: 20;
+    transition: transform 0.3s ease-in-out; /* <-- Aggiungi questa riga */
+}

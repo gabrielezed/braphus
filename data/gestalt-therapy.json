@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "data": {
+        "id": "freud_model",
+        "label": "Modello Strutturale",
+        "content": "## Modello Strutturale di Freud\n\nLa teoria psicoanalitica di Sigmund Freud descrive la mente come un apparato con tre istanze principali:\n\n* **Es (Id):** La parte istintiva e inconscia che persegue il principio di piacere.\n* **Io (Ego):** L'istanza che media tra l'Es, il Super-io e la realtà esterna.\n* **Super-io (Superego):** La componente morale e censoria, che internalizza le norme sociali.\n\nQuesto modello è un precursore fondamentale per molte psicoterapie successive, inclusa la Gestalt."
+      }
+    },
+    {
+      "data": {
+        "id": "gestalt_basics",
+        "label": "Fondamenti della Gestalt",
+        "content": "## Terapia della Gestalt\n\nFondata da **Fritz Perls**, la Terapia della Gestalt si concentra sull'esperienza presente e sulla consapevolezza.\n\nAlcuni concetti chiave sono:\n\n1.  **Il Qui e Ora:** L'attenzione è posta su ciò che il paziente sperimenta nel momento presente.\n2.  **Confine del Contatto:** Il punto di incontro tra l'individuo e l'ambiente.\n3.  **Ciclo del Contatto:** Il processo attraverso cui un bisogno emerge, viene soddisfatto e si ritira.\n\nLa Gestalt integra e supera alcuni concetti freudiani, ponendo maggiore enfasi sulla responsabilità personale."
+      }
+    },
+    {
+        "data": {
+          "id": "here_and_now",
+          "label": "Qui e Ora",
+          "content": "### Il Principio del Qui e Ora\n\nQuesto è forse il concetto più centrale della Gestalt. Invece di analizzare il passato, si esplora come il passato si manifesta nel presente, attraverso:\n\n- Sensazioni corporee\n- Emozioni\n- Schemi di linguaggio"
+        }
+      },
+    {
+      "data": {
+        "id": "naranjo_enneagram",
+        "label": "Enneagramma (Naranjo)",
+        "content": "## L'Enneagramma delle Personalità\n\n**Claudio Naranjo**, psichiatra cileno e figura di spicco della Gestalt, ha integrato il sistema dell'Enneagramma con la psicologia moderna.\n\nHa descritto i **9 enneatipi** (o tipi di personalità) come fissazioni dell'ego, o \"passioni\", che rappresentano modi distorti di vedere il mondo. Il lavoro terapeutico consiste nel riconoscere e trascendere queste fissazioni per raggiungere una maggiore integrità.\n\nL'approccio di Naranjo è profondamente radicato nella sua esperienza con la terapia della Gestalt."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": { "source": "freud_model", "target": "gestalt_basics" }
+    },
+    {
+      "data": { "source": "gestalt_basics", "target": "naranjo_enneagram" }
+    },
+    {
+        "data": { "source": "gestalt_basics", "target": "here_and_now" }
+    }
+  ]
+}
