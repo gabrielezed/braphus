@@ -1,8 +1,8 @@
 # Braphus
 
-Braphus is a minimalist web application for visualizing and navigating interactive knowledge graphs. It allows users to dynamically load their own graph data from a `.json` file and explore complex topics through an intuitive, node-based interface.
+Braphus is a minimalist web application for visualizing and navigating interactive knowledge graphs. It allows users to dynamically load their own graph data from a `.json` file, explore complex topics through an intuitive, node-based interface, edit the content in real-time, and export their changes.
 
-The core principle is to support non-linear exploration, allowing users to understand the relationships between concepts at their own pace.
+The core principle is to support non-linear exploration and dynamic content creation, allowing users to understand and shape the relationships between concepts at their own pace.
 
 -----
 
@@ -11,8 +11,10 @@ The core principle is to support non-linear exploration, allowing users to under
   * **Dynamic File Loading:** Load your own `.json` graph files using a simple **drag-and-drop** interface or a file selector.
   * **Interactive Graph Visualization:** Renders nodes (topics) and edges (connections) in a clean, hierarchical layout.
   * **Rich Content Display:** Nodes support content written in **Markdown**, which is rendered in a side panel upon clicking a node.
+  * **In-App Node Editing:** Click the "edit" button on any node's content panel to modify its Markdown content directly within the application.
+  * **Graph Exporting:** Save your modified graph, including all content changes, as a new `.json` file using the "export" button.
   * **Quick Search:** Instantly find nodes within the graph by typing in the search bar.
-  * **View Controls:** Easily navigate the graph with Zoom In, Zoom Out, and Reset View functions.
+  * **View Controls:** Easily navigate the graph with Zoom In, Zoom Out, Reset View, and Load New Graph functions.
   * **Modular & Scalable:** Built with a modern, modular JavaScript architecture for easy maintenance and extension.
 
 -----
@@ -30,7 +32,7 @@ The easiest way is to use the **Live Server** extension in Visual Studio Code. A
     ```
 3.  Open your browser and navigate to `http://localhost:8000`.
 
-Once the application is running, you will be greeted with a welcome screen. Simply **drag and drop your `.json` file** onto the page or use the button to select it from your computer.
+Once the application is running, you will be greeted with a welcome screen. Simply **drag and drop your `.json` file** onto the page or use the button to select it from your computer. Once a graph is loaded, you can use the control buttons at the bottom-left to navigate, export your work, or return to the welcome screen to load a different graph.
 
 -----
 
