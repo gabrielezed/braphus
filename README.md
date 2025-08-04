@@ -1,72 +1,79 @@
 # Braphus
 
-Braphus is a minimalist web application for visualizing and navigating learning roadmaps as interactive knowledge graphs. Inspired by the need for non-linear learning, it allows users to explore complex topics by starting at any point and following the connections between ideas.
+Braphus is a minimalist web application for visualizing and navigating interactive knowledge graphs. It allows users to dynamically load their own graph data from a `.json` file and explore complex topics through an intuitive, node-based interface.
 
----
+The core principle is to support non-linear exploration, allowing users to understand the relationships between concepts at their own pace.
+
+-----
 
 ## Features
 
-* **Graph Visualization:** Renders nodes (topics) and edges (connections) in a hierarchical layout.
-* **Interactive Navigation:** Click a node to view its content and relationships.
-* **Rich Text Content:** Nodes support content written in **Markdown**.
-* **Search Bar:** Quickly find nodes in the graph by typing their name.
-* **View Controls:** Zoom In, Zoom Out, and Reset view functions for easy navigation.
-* **Responsive Design:** The interface adapts for good usability on various screen sizes.
+  * **Dynamic File Loading:** Load your own `.json` graph files using a simple **drag-and-drop** interface or a file selector.
+  * **Interactive Graph Visualization:** Renders nodes (topics) and edges (connections) in a clean, hierarchical layout.
+  * **Rich Content Display:** Nodes support content written in **Markdown**, which is rendered in a side panel upon clicking a node.
+  * **Quick Search:** Instantly find nodes within the graph by typing in the search bar.
+  * **View Controls:** Easily navigate the graph with Zoom In, Zoom Out, and Reset View functions.
+  * **Modular & Scalable:** Built with a modern, modular JavaScript architecture for easy maintenance and extension.
 
----
+-----
 
-## How to Run It
+## How to Use
 
-Since the application uses the `fetch` API to load local files (`.json`), it cannot be run by simply opening `index.html` in your browser due to security policies (CORS).
+Because the application uses modern JavaScript features (ES Modules) to load local files, it must be run through a **local web server** due to browser security policies (CORS).
 
-You must serve it using a **local web server**. The easiest way is to use the **Live Server** extension for Visual Studio Code, or you can run a Python server:
+The easiest way is to use the **Live Server** extension in Visual Studio Code. Alternatively, you can use Python's built-in server:
 
-1. Open a terminal in the `braphus/` root folder.
-2. Run the command (requires Python 3):
-    ```bash
-    python -m http.server
-    ```
-3. Open your browser and go to `http://localhost:8000`.
+1.  Open a terminal in the `braphus/` root folder.
+2.  Run the command (Python 3 is required):
+    ```bash
+    python -m http.server
+    ```
+3.  Open your browser and navigate to `http://localhost:8000`.
 
----
+Once the application is running, you will be greeted with a welcome screen. Simply **drag and drop your `.json` file** onto the page or use the button to select it from your computer.
+
+-----
 
 ## Project Structure
 
-````
+The project has been refactored for maintainability and separation of concerns.
 
+```
 /braphus
-|-- index.html              \# Main page structure
+|-- index.html              # Main HTML structure
 |-- /css
-|   |-- style.css           \# Custom stylesheets
+|   |-- style.css           # Custom stylesheets
 |-- /js
-|   |-- main.js             \# Application logic (Cytoscape, events, etc.)
+|   |-- main.js             # Orchestrator/Entry point
+|   |-- ui.js               # UI module (panels, welcome screen)
+|   |-- graph.js            # Cytoscape and graph logic module
+|   |-- file-handler.js     # File loading and parsing module
 |-- /data
-|   |-- gestalt-therapy.json \# Example data file for the graph
-|-- README.md               \# This file
+|   |-- gestalt-therapy.json # Example graph data file
+|-- README.md               # This file
+```
 
-````
+-----
 
----
+## Graph Data Format
 
-## Graph Data
+To create your own graph, structure a `.json` file as follows. You can use `/data/gestalt-therapy.json` as a template.
 
-To create your own graph, edit or create a new `.json` file in the `/data` folder following this format:
+  * **`nodes`**: An array of objects, where each object represents a node.
+      * `data.id`: A unique identifier (string).
+      * `data.label`: The label that will appear on the node.
+      * `data.content`: The Markdown-formatted text that will appear in the side panel.
+  * **`edges`**: An array of objects defining the connections.
+      * `data.source`: The `id` of the starting node.
+      * `data.target`: The `id` of the destination node.
 
-* **`nodes`**: An array of objects, where each object represents a node.
-    * `data.id`: A unique identifier (string).
-    * `data.label`: The label that will appear on the node.
-    * `data.content`: The Markdown-formatted text that will appear in the sidebar.
-* **`edges`**: An array of objects that defines the connections.
-    * `data.source`: The `id` of the starting node.
-    * `data.target`: The `id` of the destination node.
-
----
+-----
 
 ## Technologies Used
 
-* **Vanilla JavaScript (ES6+)**
-* **HTML5** & **CSS3**
-* **[Cytoscape.js](https://js.cytoscape.org/)**: For rendering and interacting with the graph.
-* **[Dagre.js](https://github.com/dagrejs/dagre)**: For the hierarchical graph layout.
-* **[Marked.js](https://marked.js.org/)**: For interpreting Markdown.
-* **[Bootstrap 5](https://getbootstrap.com/)**: For some basic UI components and icons.
+  * **Vanilla JavaScript (ES6 Modules)**
+  * **HTML5** & **CSS3**
+  * **[Cytoscape.js](https://js.cytoscape.org/)**: For graph rendering and interaction.
+  * **[Dagre.js](https://github.com/dagrejs/dagre)**: For the hierarchical graph layout.
+  * **[Marked.js](https://marked.js.org/)**: For parsing Markdown content.
+  * **[Bootstrap 5](https://getbootstrap.com/)**: For base UI components and icons.
