@@ -146,7 +146,8 @@ html, body {
     z-index: 20;
 }
 
-#workspace-modal {
+/* Generic styles for modal overlays */
+#workspace-modal, #generic-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -159,7 +160,7 @@ html, body {
     align-items: center;
 }
 
-#workspace-modal.d-none {
+#workspace-modal.d-none, #generic-modal.d-none {
     display: none;
 }
 
@@ -193,6 +194,13 @@ html, body {
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    gap: 0.5rem;
 }
 
 .workspace-section h3 {

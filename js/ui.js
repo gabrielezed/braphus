@@ -24,6 +24,13 @@ export const importDropZone = document.getElementById('import-drop-zone');
 export const selectFileBtn = document.getElementById('select-file-btn');
 export const fileInput = document.getElementById('file-input');
 
+// --- Generic Modal References ---
+const genericModal = document.getElementById('generic-modal');
+const genericModalTitle = document.getElementById('generic-modal-title');
+const genericModalBody = document.getElementById('generic-modal-body');
+const genericModalFooter = document.getElementById('generic-modal-footer');
+const genericModalCloseBtn = document.getElementById('generic-modal-close-btn');
+
 
 /**
  * Hides the welcome screen overlay.
@@ -206,6 +213,85 @@ function _setDisplayMode(markdownContent) {
 }
 
 
+// --- Generic Modal Functions ---
+
+/**
+ * Hides the generic modal.
+ */
+export function hideModal() {
+    genericModal.classList.add('d-none');
+    // Clear content for next use
+    genericModalTitle.textContent = '';
+    genericModalBody.innerHTML = '';
+    genericModalFooter.innerHTML = '';
+}
+
+/**
+ * Shows a confirmation dialog.
+ * @param {object} options - The options for the confirmation modal.
+ * @param {string} options.title - The title of the modal.
+ * @param {string} options.message - The confirmation message.
+ * @param {function} options.onConfirm - Callback to run if the user confirms.
+ */
+export function showConfirmModal({ title, message, onConfirm }) {
+    genericModalTitle.textContent = title;
+    genericModalBody.innerHTML = `<p>${message}</p>`;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-secondary';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = hideModal;
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'btn btn-primary';
+    confirmBtn.textContent = 'Confirm';
+    confirmBtn.onclick = () => {
+        onConfirm();
+        hideModal();
+    };
+
+    genericModalFooter.appendChild(cancelBtn);
+    genericModalFooter.appendChild(confirmBtn);
+
+    genericModal.classList.remove('d-none');
+}
+
+/**
+ * Shows a prompt dialog for user input.
+ * @param {object} options - The options for the prompt modal.
+ * @param {string} options.title - The title of the modal.
+ * @param {string} options.label - The label for the input field.
+ * @param {function} options.onConfirm - Callback to run with the input's value.
+ */
+export function showPromptModal({ title, label, onConfirm }) {
+    genericModalTitle.textContent = title;
+
+    genericModalBody.innerHTML = `
+        <label for="modal-input" class="form-label">${label}</label>
+        <input type="text" id="modal-input" class="form-control">
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-secondary';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = hideModal;
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'btn btn-primary';
+    confirmBtn.textContent = 'Confirm';
+    confirmBtn.onclick = () => {
+        const input = document.getElementById('modal-input');
+        onConfirm(input.value);
+        hideModal();
+    };
+
+    genericModalFooter.appendChild(cancelBtn);
+    genericModalFooter.appendChild(confirmBtn);
+
+    genericModal.classList.remove('d-none');
+    document.getElementById('modal-input').focus();
+}
+
 /**
  * Initializes event listeners for UI elements.
  * @param {object} callbacks - An object containing callback functions for UI events.
@@ -218,4 +304,6 @@ export function initUI(callbacks) {
     // Wire up workspace modal buttons
     openWorkspaceBtn.addEventListener('click', showWorkspaceModal);
     closeWorkspaceBtn.addEventListener('click', hideWorkspaceModal);
+    // Wire up the generic modal's close button
+    genericModalCloseBtn.addEventListener('click', hideModal);
 }

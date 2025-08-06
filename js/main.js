@@ -70,48 +70,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Handles the deletion of a graph.
+     * Handles the deletion of a graph using a custom confirmation modal.
      * @param {string} graphId - The ID of the graph to delete.
      */
     async function handleDeleteGraph(graphId) {
         const graphToDelete = availableGraphs.find(g => g.graphId === graphId);
-        const confirmation = confirm(`Are you sure you want to delete the graph "${graphToDelete.name}"?\nThis action cannot be undone.`);
-
-        if (!confirmation) return;
-
-        try {
-            await api.deleteGraph(graphId);
-            // If the deleted graph is the one currently loaded, clear the view.
-            if (currentGraphId === graphId) {
-                graph.destroy();
-                currentGraphId = null;
+        
+        ui.showConfirmModal({
+            title: 'Delete Graph',
+            message: `Are you sure you want to delete the graph "${graphToDelete.name}"? This action cannot be undone.`,
+            onConfirm: async () => {
+                try {
+                    await api.deleteGraph(graphId);
+                    if (currentGraphId === graphId) {
+                        graph.destroy();
+                        currentGraphId = null;
+                    }
+                    await refreshWorkspace();
+                } catch (error) {
+                    console.error(`Failed to delete graph ${graphId}:`, error);
+                    alert(`Error: Could not delete the selected graph.`);
+                }
             }
-            // Refresh the list in the workspace to reflect the deletion.
-            await refreshWorkspace();
-        } catch (error) {
-            console.error(`Failed to delete graph ${graphId}:`, error);
-            alert(`Error: Could not delete the selected graph.`);
-        }
+        });
     }
     
     /**
-     * Callback for when a file is successfully loaded by the file-handler.
+     * Callback for when a file is successfully loaded, using a custom prompt modal.
      * @param {object} jsonData The parsed JSON data from the file.
      */
     async function handleFileImport(jsonData) {
-        const name = prompt("Please enter a name for the new graph:", "New Graph");
-        if (!name) {
-            alert("Import cancelled. A name is required.");
-            return;
-        }
-        try {
-            await api.createGraph(name, jsonData);
-            alert(`Graph "${name}" imported successfully!`);
-            await refreshWorkspace(); // Refresh the list to show the new graph
-        } catch (error) {
-            console.error("Failed to import graph:", error);
-            alert("Error: Could not import the graph. Please check the file format and console for details.");
-        }
+        ui.showPromptModal({
+            title: 'Import New Graph',
+            label: 'Please enter a name for the new graph:',
+            onConfirm: async (name) => {
+                if (!name || name.trim() === '') {
+                    alert("Import cancelled. A name is required.");
+                    return;
+                }
+                try {
+                    await api.createGraph(name, jsonData);
+                    alert(`Graph "${name}" imported successfully!`);
+                    await refreshWorkspace(); // Refresh the list to show the new graph
+                } catch (error) {
+                    console.error("Failed to import graph:", error);
+                    alert("Error: Could not import the graph. Please check the file format and console for details.");
+                }
+            }
+        });
     }
 
     /**

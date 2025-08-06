@@ -4,9 +4,11 @@ Braphus is a web application for creating, visualizing, and managing multiple kn
 
 The application allows users to maintain a personal **Workspace** of distinct knowledge graphs, importing new ones from JSON files and switching between them seamlessly.
 
-## Current Status: Functional with Known Issues
+## Current Status: Stable & Ready for Editor Implementation
 
-The "Phase 4" architectural refactor is complete. The application has been transformed from a simple single-graph viewer into a multi-graph management tool. The core functionality is operational, but new issues have been identified that need to be addressed in the next development phase.
+The critical bugs identified at the end of Phase 4 have been resolved. The application's backend is now fully graph-aware, ensuring data integrity across the workspace, and the user interface has been modernized to use clean, in-page modals instead of native browser dialogs.
+
+The project is now on a stable foundation, and the next major goal is the implementation of a full-featured graph editor.
 
 ---
 
@@ -14,7 +16,7 @@ The "Phase 4" architectural refactor is complete. The application has been trans
 
 * **Workspace Management:** Import, load, and delete multiple, distinct graphs via a dedicated workspace modal.
 * **Interactive Visualization:** Graphs are rendered using Cytoscape.js with a directed layout.
-* **Node Content Editor:** View and edit rich text content for each node using a side panel with Markdown support.
+* **Node Content Editor:** View and edit rich text content for each node using a side panel with Markdown support. All edits are now correctly scoped to the specific graph being viewed.
 * **Persistent Storage:** All graph data is stored in a local Neo4j database, managed via Docker.
 
 ---
@@ -29,8 +31,11 @@ The application is a multi-container system orchestrated by `docker-compose`:
 
 ---
 
-### Known Issues
+### Next Steps: The Graph Editor
 
-* **Data Integrity Bug on Node Edit:** When two different graphs share structurally identical nodes (e.g., imported from the same base file), editing a node in one graph will incorrectly modify the corresponding node in the other. This is because the node update API (`PUT /api/node/<id>`) is not yet graph-aware and identifies nodes solely by their content `id`, which is not guaranteed to be unique across different graphs.
+With the core infrastructure stabilized, the next development phase will focus on transforming Braphus from a graph viewer into a graph creation tool. The planned features include:
 
-* **Use of Native Browser Dialogs:** The application currently uses `window.prompt()` for naming imported graphs and `window.confirm()` for deletions. These native browser dialogs can be blocked by some browsers or browser extensions, and they offer a poor user experience. This functionality should be migrated to custom, in-page UI modals.
+* **Dedicated Edit Mode:** A toggleable mode that enables creation and manipulation tools on the canvas.
+* **Node Creation:** The ability to add new nodes directly to the graph from the UI.
+* **Edge Creation:** An intuitive way to draw connections between nodes to establish relationships.
+* **Element Deletion:** Functionality to delete selected nodes and edges from the graph.
