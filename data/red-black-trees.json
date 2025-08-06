@@ -1,0 +1,78 @@
+{
+  "nodes": [
+    {
+      "data": {
+        "id": "rbtree_root",
+        "label": "Red-Black Tree",
+        "content": "## Red-Black Tree\n\nA Red-Black Tree is a type of self-balancing **binary search tree**. It maintains its balance through a set of rules enforced by coloring each node either **RED** or **BLACK**. This ensures that the longest path from the root to any leaf is no more than twice as long as the shortest path, guaranteeing that key operations like search, insert, and delete remain efficient (O(log n) time complexity)."
+      }
+    },
+    {
+      "data": {
+        "id": "rbtree_properties",
+        "label": "Core Properties",
+        "content": "## Core Properties\n\nEvery Red-Black Tree must satisfy the following rules at all times:\n\n1.  **Node Color:** Every node is either RED or BLACK.\n2.  **Root Property:** The root node is always BLACK.\n3.  **Leaf Property:** All leaves (NIL nodes) are BLACK.\n4.  **Red Node Property:** If a node is RED, then both its children are BLACK.\n5.  **Black-Height Property:** Every simple path from a given node to any of its descendant leaves contains the same number of BLACK nodes."
+      }
+    },
+    {
+      "data": {
+        "id": "bst_property",
+        "label": "Binary Search Tree",
+        "content": "## Binary Search Tree (BST) Property\n\nLike all binary search trees, a Red-Black Tree must satisfy the BST invariant:\n\n- For any given node `N`, all values in its **left** subtree are less than `N`'s value.\n- All values in its **right** subtree are greater than `N`'s value."
+      }
+    },
+    {
+      "data": {
+        "id": "rbtree_insertion",
+        "label": "Insertion",
+        "content": "## Insertion\n\n1.  A new node is always inserted as **RED**.\n2.  Standard BST insertion is performed.\n3.  After insertion, the tree's properties might be violated (e.g., a RED node might have a RED parent).\n4.  A **fix-up** procedure is initiated to restore the Red-Black properties."
+      }
+    },
+    {
+      "data": {
+        "id": "rbtree_fixup",
+        "label": "Fix-up Procedure",
+        "content": "## Fix-up Procedure\n\nThe fix-up procedure is what maintains the tree's balance after an insertion or deletion. It uses two primary operations:\n\n- **Recoloring:** Changing the colors of nodes to resolve violations.\n- **Rotations:** Restructuring the tree locally to restore the properties that recoloring alone cannot fix."
+      }
+    },
+    {
+      "data": {
+        "id": "rbtree_rotations",
+        "label": "Tree Rotations",
+        "content": "## Tree Rotations\n\nRotations are local transformations that change the structure of the tree without violating the binary search tree property.\n\n- **Left Rotation:** Pivots nodes to the left, making a right child the new parent of its old parent.\n- **Right Rotation:** Pivots nodes to the right, making a left child the new parent of its old parent.\n\nThese are the fundamental tools for rebalancing the tree."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "source": "rbtree_root",
+        "target": "rbtree_properties"
+      }
+    },
+    {
+      "data": {
+        "source": "rbtree_root",
+        "target": "bst_property"
+      }
+    },
+    {
+      "data": {
+        "source": "rbtree_root",
+        "target": "rbtree_insertion"
+      }
+    },
+    {
+      "data": {
+        "source": "rbtree_insertion",
+        "target": "rbtree_fixup"
+      }
+    },
+    {
+      "data": {
+        "source": "rbtree_fixup",
+        "target": "rbtree_rotations"
+      }
+    }
+  ]
+}

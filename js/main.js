@@ -1,14 +1,14 @@
 /**
  * Main application entry point.
  * Orchestrates the UI, Graph, and API Handler modules.
- *
- * DEBUGGING VERSION: This version has enhanced error logging to find the root cause of initialization failures.
+ * This version implements the new "Workspace" paradigm.
  */
 
 // --- Module Imports ---
 import * as ui from './ui.js';
 import * as graph from './graph.js';
 import * as api from './api-handler.js';
+import { initFileHandler } from './file-handler.js';
 
 // --- Wait for the DOM to be fully loaded ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,43 +20,142 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetViewBtn = document.getElementById('reset-view-btn');
     const searchInput = document.getElementById('search-input');
     const exportGraphBtn = document.getElementById('export-graph-btn');
-    const loadNewGraphBtn = document.getElementById('load-new-graph-btn');
-    const welcomeScreen = document.getElementById('welcome-screen');
-    const welcomeMessage = welcomeScreen.querySelector('p');
 
     // --- Application State ---
     let selectedNode = null;
+    let currentGraphId = null;
+    let availableGraphs = [];
 
     // --- Core Application Logic ---
 
     /**
-     * Initializes the application by fetching graph data from the backend.
+     * Initializes the application by fetching the list of graphs and showing the workspace.
      */
     async function initializeApp() {
-        // CRITICAL: Wrap the entire initialization in a try/catch block
-        // to expose the real error to the browser console.
         try {
-            let graphData = await api.getGraph();
+            ui.setWelcomeMessage('Loading Workspace...');
+            await refreshWorkspace();
+            ui.hideWelcomeScreen();
+            ui.showWorkspaceModal();
+        } catch (error) {
+            console.error("----------- FATAL INITIALIZATION ERROR -----------");
+            console.error(error);
+            ui.setWelcomeMessage('Fatal Error. Could not connect to the backend. Check console (F12).');
+        }
+    }
 
-            if (!graphData.nodes || graphData.nodes.length === 0) {
-                welcomeMessage.textContent = 'Database is empty. Seeding...';
-                await api.seedDatabase();
-                graphData = await api.getGraph();
-            }
+    /**
+     * Fetches the list of graphs and repopulates the workspace modal.
+     */
+    async function refreshWorkspace() {
+        availableGraphs = await api.getGraphs();
+        ui.populateWorkspace(availableGraphs, handleLoadGraph, handleDeleteGraph);
+    }
 
-            welcomeMessage.textContent = 'Rendering graph...';
+    /**
+     * Handles loading a specific graph into the main view.
+     * @param {string} graphId - The ID of the graph to load.
+     */
+    async function handleLoadGraph(graphId) {
+        try {
+            ui.hideWorkspaceModal();
+            const graphData = await api.getGraphById(graphId);
             graph.render(graphData);
             graph.fit();
-            ui.hideWelcomeScreen();
-
+            currentGraphId = graphId;
         } catch (error) {
-            // THIS IS THE MOST IMPORTANT PART: Log the actual error object.
-            console.error("----------- FATAL INITIALIZATION ERROR -----------");
-            console.error("The application failed to start. This is the real error:");
-            console.error(error);
-            console.error("----------------------------------------------------");
-            welcomeMessage.textContent = 'Fatal Error. Check the developer console (F12) for details.';
-            ui.showWelcomeScreen();
+            console.error(`Failed to load graph ${graphId}:`, error);
+            alert(`Error: Could not load the selected graph.`);
+        }
+    }
+
+    /**
+     * Handles the deletion of a graph.
+     * @param {string} graphId - The ID of the graph to delete.
+     */
+    async function handleDeleteGraph(graphId) {
+        const graphToDelete = availableGraphs.find(g => g.graphId === graphId);
+        const confirmation = confirm(`Are you sure you want to delete the graph "${graphToDelete.name}"?\nThis action cannot be undone.`);
+
+        if (!confirmation) return;
+
+        try {
+            await api.deleteGraph(graphId);
+            // If the deleted graph is the one currently loaded, clear the view.
+            if (currentGraphId === graphId) {
+                graph.destroy();
+                currentGraphId = null;
+            }
+            // Refresh the list in the workspace to reflect the deletion.
+            await refreshWorkspace();
+        } catch (error) {
+            console.error(`Failed to delete graph ${graphId}:`, error);
+            alert(`Error: Could not delete the selected graph.`);
+        }
+    }
+    
+    /**
+     * Callback for when a file is successfully loaded by the file-handler.
+     * @param {object} jsonData The parsed JSON data from the file.
+     */
+    async function handleFileImport(jsonData) {
+        const name = prompt("Please enter a name for the new graph:", "New Graph");
+        if (!name) {
+            alert("Import cancelled. A name is required.");
+            return;
+        }
+        try {
+            await api.createGraph(name, jsonData);
+            alert(`Graph "${name}" imported successfully!`);
+            await refreshWorkspace(); // Refresh the list to show the new graph
+        } catch (error) {
+            console.error("Failed to import graph:", error);
+            alert("Error: Could not import the graph. Please check the file format and console for details.");
+        }
+    }
+
+    /**
+     * Handles exporting the current graph data as a JSON file.
+     */
+    function exportGraph() {
+        if (!currentGraphId) {
+            alert('Please load a graph before exporting.');
+            return;
+        }
+        const graphData = graph.exportGraphData();
+        if (!graphData || !graphData.elements || (!graphData.elements.nodes && !graphData.elements.edges)) {
+            alert('There is no graph data to export.');
+            return;
+        }
+        const exportObject = {
+            nodes: graphData.elements.nodes.map(n => n),
+            edges: graphData.elements.edges.map(e => e)
+        };
+        const jsonString = JSON.stringify(exportObject, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const a = document.createElement('a');
+
+        const graphName = availableGraphs.find(g => g.graphId === currentGraphId)?.name || 'braphus_export';
+        a.download = `${graphName.replace(/\s+/g, '_')}.json`;
+        a.href = URL.createObjectURL(blob);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    }
+
+    /**
+     * Handles saving updated node content.
+     */
+    async function handleNodeSave(newContent) {
+        if (!selectedNode) return;
+        try {
+            await api.updateNode(selectedNode.id, newContent);
+            graph.updateNodeContent(selectedNode.id, newContent);
+            selectedNode.content = newContent;
+        } catch (error) {
+            console.error("Failed to save node:", error);
+            alert("Error: Could not save changes to the server.");
         }
     }
 
@@ -79,52 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedNode = null;
     }
 
-    /**
-     * Handles exporting the current graph data.
-     */
-    function exportGraph() {
-        const graphData = graph.exportGraphData();
-        if (!graphData || !graphData.elements || (!graphData.elements.nodes && !graphData.elements.edges)) {
-            alert('There is no graph data to export.');
-            return;
-        }
-        const exportObject = {
-            nodes: graphData.elements.nodes.map(n => n),
-            edges: graphData.elements.edges.map(e => e)
-        };
-        const jsonString = JSON.stringify(exportObject, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'braphus_export.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-    }
-    
-    /**
-     * Resets the application by reloading the page.
-     */
-    function loadNewGraph() {
-        window.location.reload();
-    }
-
-    /**
-     * Handles saving updated node content.
-     */
-    async function handleNodeSave(newContent) {
-        if (!selectedNode) return;
-        try {
-            await api.updateNode(selectedNode.id, newContent);
-            graph.updateNodeContent(selectedNode.id, newContent);
-            selectedNode.content = newContent;
-        } catch (error) {
-            console.error("Failed to save node:", error);
-            alert("Error: Could not save changes to the server.");
-        }
-    }
-
     // --- Module Initializations ---
     ui.initUI({ onClosePanel: closePanelAndReset });
     ui.initEditor({
@@ -136,6 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
         onNodeTap: onNodeTap,
         onCanvasTap: closePanelAndReset
     });
+    initFileHandler(
+        ui.importDropZone,
+        ui.fileInput,
+        ui.selectFileBtn,
+        handleFileImport
+    );
     
     // --- Start the application ---
     initializeApp();
@@ -145,6 +204,5 @@ document.addEventListener('DOMContentLoaded', () => {
     zoomOutBtn.addEventListener('click', graph.zoomOut);
     resetViewBtn.addEventListener('click', graph.fit);
     exportGraphBtn.addEventListener('click', exportGraph);
-    loadNewGraphBtn.addEventListener('click', loadNewGraph);
     searchInput.addEventListener('input', (e) => graph.search(e.target.value));
 });

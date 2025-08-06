@@ -13,10 +13,42 @@
     <div id="cy"></div>
 
     <div id="welcome-screen">
-        <div id="drop-zone">
+        <div id="welcome-message-container">
             <p>Loading Braphus...</p>
-            </div>
+        </div>
     </div>
+
+    <div id="top-controls">
+        <button id="open-workspace-btn" class="btn btn-primary" title="Open Workspace"><i class="bi bi-folder2-open"></i> Workspace</button>
+    </div>
+
+    <div id="workspace-modal" class="d-none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Braphus Workspace</h2>
+                <button id="close-workspace-btn" type="button" class="btn-close" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="workspace-section">
+                    <h3>My Graphs</h3>
+                    <div id="graph-list-container">
+                        <ul id="graph-list">
+                            </ul>
+                    </div>
+                </div>
+                <div class="workspace-section">
+                    <h3>Import New Graph</h3>
+                    <div id="import-drop-zone">
+                         <p>Drag & Drop a Braphus JSON file here</p>
+                         <p>or</p>
+                         <button id="select-file-btn" class="btn btn-secondary">Select File</button>
+                    </div>
+                    <input type="file" id="file-input" hidden accept="application/json">
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div id="search-container">
         <input type="text" id="search-input" class="form-control" placeholder="Search a node...">
@@ -27,8 +59,7 @@
         <button id="zoom-out-btn" class="btn btn-light" title="Zoom Out"><i class="bi bi-zoom-out"></i></button>
         <button id="reset-view-btn" class="btn btn-light" title="Reset View"><i class="bi bi-arrows-fullscreen"></i></button>
         <button id="export-graph-btn" class="btn btn-light" title="Export Graph"><i class="bi bi-download"></i></button>
-        <button id="load-new-graph-btn" class="btn btn-light" title="Load New Graph"><i class="bi bi-arrow-clockwise"></i></button>
-    </div>
+        </div>
 
     <div id="content-panel" class="d-none">
         <div class="panel-header">

@@ -15,6 +15,16 @@ const searchContainer = document.getElementById('search-container');
 const closePanelButton = document.getElementById('close-panel');
 const editNodeBtn = document.getElementById('edit-node-btn');
 
+// --- NEW Workspace Modal References ---
+const workspaceModal = document.getElementById('workspace-modal');
+const openWorkspaceBtn = document.getElementById('open-workspace-btn');
+const closeWorkspaceBtn = document.getElementById('close-workspace-btn');
+const graphList = document.getElementById('graph-list');
+export const importDropZone = document.getElementById('import-drop-zone');
+export const selectFileBtn = document.getElementById('select-file-btn');
+export const fileInput = document.getElementById('file-input');
+
+
 /**
  * Hides the welcome screen overlay.
  */
@@ -28,14 +38,14 @@ export function hideWelcomeScreen() {
 }
 
 /**
- * Shows the welcome screen overlay.
- * (Currently not used after initial load, but good for future features like "load another graph").
+ * Updates the text on the welcome screen.
+ * @param {string} text The message to display.
  */
-export function showWelcomeScreen() {
-    welcomeScreen.style.display = 'flex';
-    setTimeout(() => {
-        welcomeScreen.style.opacity = '1';
-    }, 10); // A small delay ensures the transition is applied correctly.
+export function setWelcomeMessage(text) {
+    const p = welcomeScreen.querySelector('p');
+    if (p) {
+        p.textContent = text;
+    }
 }
 
 /**
@@ -73,6 +83,69 @@ export function moveSearchContainer(isPanelOpen) {
         searchContainer.style.transform = 'translateX(0)';
     }
 }
+
+/**
+ * Shows the workspace modal.
+ */
+export function showWorkspaceModal() {
+    workspaceModal.classList.remove('d-none');
+}
+
+/**
+ * Hides the workspace modal.
+ */
+export function hideWorkspaceModal() {
+    workspaceModal.classList.add('d-none');
+}
+
+/**
+ * Populates the workspace graph list with data from the API.
+ * @param {Array<object>} graphs - Array of graph objects ({graphId, name}).
+ * @param {function} onLoadCallback - Function to call when a 'Load' button is clicked.
+ * @param {function} onDeleteCallback - Function to call when a 'Delete' button is clicked.
+ */
+export function populateWorkspace(graphs, onLoadCallback, onDeleteCallback) {
+    graphList.innerHTML = ''; // Clear existing list
+
+    if (!graphs || graphs.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'No graphs found. Import one to get started.';
+        li.style.padding = '1rem';
+        li.style.justifyContent = 'center';
+        graphList.appendChild(li);
+        return;
+    }
+
+    graphs.forEach(graph => {
+        const li = document.createElement('li');
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'graph-name';
+        nameSpan.textContent = graph.name;
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'graph-actions';
+
+        const loadBtn = document.createElement('button');
+        loadBtn.className = 'btn btn-sm btn-success';
+        loadBtn.textContent = 'Load';
+        loadBtn.onclick = () => onLoadCallback(graph.graphId);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-sm btn-danger';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = () => onDeleteCallback(graph.graphId);
+
+        actionsDiv.appendChild(loadBtn);
+        actionsDiv.appendChild(deleteBtn);
+
+        li.appendChild(nameSpan);
+        li.appendChild(actionsDiv);
+
+        graphList.appendChild(li);
+    });
+}
+
 
 /**
  * Initializes the editor functionality and its event listeners.
@@ -142,4 +215,7 @@ export function initUI(callbacks) {
     if (closePanelButton && callbacks.onClosePanel) {
         closePanelButton.addEventListener('click', callbacks.onClosePanel);
     }
+    // Wire up workspace modal buttons
+    openWorkspaceBtn.addEventListener('click', showWorkspaceModal);
+    closeWorkspaceBtn.addEventListener('click', hideWorkspaceModal);
 }
