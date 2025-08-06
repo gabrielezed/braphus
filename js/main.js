@@ -145,14 +145,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Handles saving updated node content.
+     * Handles saving updated node content using the new graph-aware API.
      */
     async function handleNodeSave(newContent) {
-        if (!selectedNode) return;
+        if (!selectedNode || !currentGraphId) return;
         try {
-            await api.updateNode(selectedNode.id, newContent);
+            // Use the new graph-aware API endpoint
+            await api.updateNodeInGraph(currentGraphId, selectedNode.id, { content: newContent });
             graph.updateNodeContent(selectedNode.id, newContent);
-            selectedNode.content = newContent;
+            selectedNode.content = newContent; // Update local state
         } catch (error) {
             console.error("Failed to save node:", error);
             alert("Error: Could not save changes to the server.");

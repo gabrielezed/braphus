@@ -84,16 +84,18 @@ export async function deleteGraph(graphId) {
 }
 
 /**
- * Sends updated content for a specific node to the backend.
+ * Sends updated properties for a specific node to the backend, within a given graph.
+ * @param {string} graphId The ID of the graph containing the node.
  * @param {string} nodeId The ID of the node to update.
- * @param {string} newContent The new Markdown content for the node.
+ * @param {object} data An object containing the properties to update (e.g., { content: "new content" }).
  * @returns {Promise<object>} A promise that resolves to the updated node data.
  */
-export async function updateNode(nodeId, newContent) {
-    const response = await fetch(`${API_BASE_URL}/node/${nodeId}`, {
+export async function updateNodeInGraph(graphId, nodeId, data) {
+    const url = `${API_BASE_URL}/graphs/${graphId}/nodes/${nodeId}`;
+    const response = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newContent }),
+        body: JSON.stringify(data),
     });
     if (!response.ok) {
         throw new Error(`Failed to update node. Status: ${response.status}`);

@@ -131,22 +131,28 @@ def delete_graph(graph_id):
     return jsonify({"message": f"Graph '{graph_id}' deleted successfully."}), 200
 
 
-@app.route('/api/node/<string:node_id>', methods=['PUT'])
-def update_node(node_id):
+@app.route('/api/graphs/<string:graph_id>/nodes/<string:node_id>', methods=['PUT'])
+def update_node_in_graph(graph_id, node_id):
     """
-    Updates the content of a single node. This functionality is graph-agnostic
-    as node IDs are unique across the database.
+    Updates a node's properties within a specific graph.
+    This is the new, graph-aware endpoint.
     """
     data = request.get_json()
     if not data or 'content' not in data:
-        abort(400, description="Missing 'content' in request body.")
+        abort(400, description="Request must include 'content' field.")
 
-    query = "MATCH (n:Node {id: $id}) SET n.content = $content RETURN n"
+    content = data['content']
+
+    query = """
+        MATCH (n:Node {id: $nodeId})-[:BELONGS_TO]->(g:Graph {graphId: $graphId})
+        SET n.content = $content
+        RETURN n
+    """
     with driver.session() as session:
-        result = session.run(query, id=node_id, content=data['content'])
+        result = session.run(query, nodeId=node_id, graphId=graph_id, content=content)
         updated_node = result.single()
         if not updated_node:
-            abort(404, description=f"Node with id '{node_id}' not found.")
+            abort(404, description=f"Node with id '{node_id}' not found in graph '{graph_id}'.")
         return jsonify(dict(updated_node['n']))
 
 
