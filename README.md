@@ -6,8 +6,6 @@ The application allows users to maintain a personal **Workspace** of distinct kn
 
 ## Current Status: Stable & Ready for Editor Implementation
 
-The critical bugs identified at the end of Phase 4 have been resolved. The application's backend is now fully graph-aware, ensuring data integrity across the workspace, and the user interface has been modernized to use clean, in-page modals instead of native browser dialogs.
-
 The project is now on a stable foundation, and the next major goal is the implementation of a full-featured graph editor.
 
 ---
