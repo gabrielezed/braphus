@@ -1,0 +1,32 @@
+services:
+  database:
+    image: neo4j:latest
+    container_name: braphus-neo4j
+    ports:
+      - "7474:7474" # Neo4j Browser
+      - "7687:7687" # Bolt Protocol
+    volumes:
+      - ./neo4j/data:/data
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    # ---- HEALTHCHECK USING NEO4J's NATIVE TOOL ----
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p password 'RETURN 1' || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+    # -----------------------------------------------
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: braphus-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      database:
+        condition: service_healthy

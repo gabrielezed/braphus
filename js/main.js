@@ -1,20 +1,19 @@
 /**
  * Main application entry point.
- * Orchestrates the UI, Graph, and File Handler modules.
+ * Orchestrates the UI, Graph, and API Handler modules.
+ *
+ * DEBUGGING VERSION: This version has enhanced error logging to find the root cause of initialization failures.
  */
 
 // --- Module Imports ---
 import * as ui from './ui.js';
 import * as graph from './graph.js';
-import { initFileHandler } from './file-handler.js';
+import * as api from './api-handler.js';
 
 // --- Wait for the DOM to be fully loaded ---
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM Element References ---
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
-    const selectFileBtn = document.getElementById('select-file-btn');
     const cyContainer = document.getElementById('cy');
     const zoomInBtn = document.getElementById('zoom-in-btn');
     const zoomOutBtn = document.getElementById('zoom-out-btn');
@@ -22,47 +21,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const exportGraphBtn = document.getElementById('export-graph-btn');
     const loadNewGraphBtn = document.getElementById('load-new-graph-btn');
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const welcomeMessage = welcomeScreen.querySelector('p');
 
     // --- Application State ---
-    let selectedNode = null; // Holds the data of the currently selected node
+    let selectedNode = null;
 
     // --- Core Application Logic ---
 
     /**
-     * The main callback executed when a valid JSON file is loaded.
-     * It hides the welcome screen and renders the new graph.
-     * @param {object} jsonData - The parsed graph data from the file.
+     * Initializes the application by fetching graph data from the backend.
      */
-    function onFileLoaded(jsonData) {
-        ui.hideWelcomeScreen();
-        graph.render(jsonData); // render will also destroy the previous graph if it exists
-        graph.fit();
+    async function initializeApp() {
+        // CRITICAL: Wrap the entire initialization in a try/catch block
+        // to expose the real error to the browser console.
+        try {
+            let graphData = await api.getGraph();
+
+            if (!graphData.nodes || graphData.nodes.length === 0) {
+                welcomeMessage.textContent = 'Database is empty. Seeding...';
+                await api.seedDatabase();
+                graphData = await api.getGraph();
+            }
+
+            welcomeMessage.textContent = 'Rendering graph...';
+            graph.render(graphData);
+            graph.fit();
+            ui.hideWelcomeScreen();
+
+        } catch (error) {
+            // THIS IS THE MOST IMPORTANT PART: Log the actual error object.
+            console.error("----------- FATAL INITIALIZATION ERROR -----------");
+            console.error("The application failed to start. This is the real error:");
+            console.error(error);
+            console.error("----------------------------------------------------");
+            welcomeMessage.textContent = 'Fatal Error. Check the developer console (F12) for details.';
+            ui.showWelcomeScreen();
+        }
     }
 
     /**
      * Callback executed when a node in the graph is tapped.
-     * It opens the side panel with the node's data.
-     * @param {object} nodeData - The data object of the tapped node.
      */
     function onNodeTap(nodeData) {
-        selectedNode = nodeData; // Store the selected node's data
+        selectedNode = nodeData;
         ui.openSidePanel(nodeData.label, nodeData.content);
-        ui.moveSearchContainer(true); // Move search bar out of the way
+        ui.moveSearchContainer(true);
     }
 
     /**
      * Callback executed when the graph background is tapped or the panel is closed.
-     * It closes the side panel and resets graph highlights.
      */
     function closePanelAndReset() {
         ui.closeSidePanel();
         graph.resetHighlights();
-        ui.moveSearchContainer(false); // Move search bar back
-        selectedNode = null; // Deselect the node
+        ui.moveSearchContainer(false);
+        selectedNode = null;
     }
 
     /**
-     * Handles the logic for exporting the current graph data to a .json file.
+     * Handles exporting the current graph data.
      */
     function exportGraph() {
         const graphData = graph.exportGraphData();
@@ -70,15 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('There is no graph data to export.');
             return;
         }
-
         const exportObject = {
-            nodes: graphData.elements.nodes || [],
-            edges: graphData.elements.edges || []
+            nodes: graphData.elements.nodes.map(n => n),
+            edges: graphData.elements.edges.map(e => e)
         };
-
         const jsonString = JSON.stringify(exportObject, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json' });
-
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'braphus_export.json';
@@ -87,56 +102,49 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(a.href);
     }
-
+    
     /**
-     * Resets the application to its initial state to load a new graph.
+     * Resets the application by reloading the page.
      */
     function loadNewGraph() {
-        closePanelAndReset(); // Close panel and clear selection
-        graph.destroy();      // Destroy the Cytoscape instance
-        ui.showWelcomeScreen(); // Show the file dropzone
+        window.location.reload();
+    }
+
+    /**
+     * Handles saving updated node content.
+     */
+    async function handleNodeSave(newContent) {
+        if (!selectedNode) return;
+        try {
+            await api.updateNode(selectedNode.id, newContent);
+            graph.updateNodeContent(selectedNode.id, newContent);
+            selectedNode.content = newContent;
+        } catch (error) {
+            console.error("Failed to save node:", error);
+            alert("Error: Could not save changes to the server.");
+        }
     }
 
     // --- Module Initializations ---
-
-    // 1. Initialize the File Handler
-    initFileHandler(dropZone, fileInput, selectFileBtn, onFileLoaded);
-
-    // 2. Initialize the UI Module
-    ui.initUI({
-        onClosePanel: closePanelAndReset
-    });
-
-    // 3. Initialize the Editor
+    ui.initUI({ onClosePanel: closePanelAndReset });
     ui.initEditor({
-        getRawContent: () => {
-            return selectedNode ? graph.getNodeContent(selectedNode.id) : '';
-        },
-        onSave: (newContent) => {
-            if (selectedNode) {
-                graph.updateNodeContent(selectedNode.id, newContent);
-                selectedNode.content = newContent;
-            }
-        }
+        getRawContent: () => selectedNode ? graph.getNodeContent(selectedNode.id) : '',
+        onSave: handleNodeSave
     });
-
-    // 4. Initialize the Graph Module
     graph.init({
         container: cyContainer,
         onNodeTap: onNodeTap,
         onCanvasTap: closePanelAndReset
     });
+    
+    // --- Start the application ---
+    initializeApp();
 
     // --- Event Listeners for Controls ---
-
     zoomInBtn.addEventListener('click', graph.zoomIn);
     zoomOutBtn.addEventListener('click', graph.zoomOut);
     resetViewBtn.addEventListener('click', graph.fit);
     exportGraphBtn.addEventListener('click', exportGraph);
     loadNewGraphBtn.addEventListener('click', loadNewGraph);
-
-    searchInput.addEventListener('input', (e) => {
-        graph.search(e.target.value);
-    });
-
+    searchInput.addEventListener('input', (e) => graph.search(e.target.value));
 });

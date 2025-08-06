@@ -1,6 +1,9 @@
 /**
  * Graph module to encapsulate all Cytoscape.js related logic.
  * It handles the creation, destruction, styling, and event management of the graph.
+ *
+ * DEBUGGING VERSION: This version assumes libraries are loaded globally via script tags
+ * to eliminate module-related conflicts.
  */
 
 // --- Module State ---
@@ -26,8 +29,12 @@ export function init(initialConfig) {
  * @param {object} graphData - The data for the graph (nodes and edges).
  */
 export function render(graphData) {
-    // Destroy any existing instance before creating a new one.
     destroy();
+
+    // The 'cytoscape', 'cytoscapeDagre', and 'dagre' variables are now
+    // available globally from the <script> tags in index.html.
+    // We must register the extension before using it.
+    cytoscape.use(cytoscapeDagre);
 
     cy = cytoscape({
         container: config.container,
@@ -50,20 +57,16 @@ export function render(graphData) {
         ]
     });
 
-    // --- Event Listener: Tap on a Node ---
     cy.on('tap', 'node', function(evt){
         const clickedNode = evt.target;
-        // Invoke the callback passed during initialization.
         if (config.onNodeTap) {
             config.onNodeTap(clickedNode.data());
         }
         highlightNode(clickedNode);
     });
 
-    // --- Event Listener: Tap on Graph Background ---
     cy.on('tap', function(event) {
         if (event.target === cy) {
-            // Invoke the callback for canvas tap.
             if (config.onCanvasTap) {
                 config.onCanvasTap();
             }
@@ -72,59 +75,35 @@ export function render(graphData) {
     });
 }
 
-/**
- * Highlights a node and its neighbors, fading out the rest.
- * @param {cytoscape.NodeObject} node - The node to highlight.
- */
 function highlightNode(node) {
     if (!cy) return;
     const neighbors = node.neighborhood();
-    resetHighlights(); // Clear previous selections.
-
+    resetHighlights();
     cy.elements().not(node.union(neighbors)).addClass('faded');
     node.addClass('selected');
     neighbors.edges().addClass('neighbor');
 }
 
-/**
- * Resets all custom classes from graph elements, clearing highlights and selections.
- */
 export function resetHighlights() {
     if (cy) {
         cy.elements().removeClass('selected neighbor faded search-highlight');
     }
 }
 
-/**
- * Applies search highlighting to nodes matching the query.
- * @param {string} query - The search term.
- */
 export function search(query) {
     if (!cy) return;
-
     const lowerCaseQuery = query.toLowerCase().trim();
-
     resetHighlights();
-
-    if (lowerCaseQuery === '') {
-        return;
-    }
-
+    if (lowerCaseQuery === '') return;
     const matchedNodes = cy.nodes().filter(node =>
         node.data('label').toLowerCase().includes(lowerCaseQuery)
     );
-
     if (matchedNodes.length > 0) {
         matchedNodes.addClass('search-highlight');
         cy.elements().not(matchedNodes).addClass('faded');
     }
 }
 
-/**
- * Updates the 'content' data property of a specific node.
- * @param {string} nodeId - The ID of the node to update.
- * @param {string} newContent - The new Markdown content.
- */
 export function updateNodeContent(nodeId, newContent) {
     if (!cy) return;
     const node = cy.getElementById(nodeId);
@@ -133,30 +112,17 @@ export function updateNodeContent(nodeId, newContent) {
     }
 }
 
-/**
- * Retrieves the 'content' data property of a specific node.
- * @param {string} nodeId - The ID of the node to retrieve content from.
- * @returns {string|null} - The node's content or null if not found.
- */
 export function getNodeContent(nodeId) {
     if (!cy) return null;
     const node = cy.getElementById(nodeId);
     return node ? node.data('content') : null;
 }
 
-/**
- * Exports the entire graph data as a JSON object.
- * @returns {object|null} - The graph data or null if the graph isn't initialized.
- */
 export function exportGraphData() {
     if (!cy) return null;
     return cy.json();
 }
 
-
-/**
- * Destroys the current Cytoscape instance if it exists.
- */
 export function destroy() {
     if (cy) {
         cy.destroy();
@@ -164,29 +130,18 @@ export function destroy() {
     }
 }
 
-// --- View Control Functions ---
-
-/**
- * Zooms in on the graph.
- */
 export function zoomIn() {
     if (cy) {
         cy.zoom({ level: cy.zoom() * 1.2, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
     }
 }
 
-/**
- * Zooms out of the graph.
- */
 export function zoomOut() {
     if (cy) {
         cy.zoom({ level: cy.zoom() * 0.8, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
     }
 }
 
-/**
- * Fits the entire graph into the current view.
- */
 export function fit() {
     if (cy) {
         cy.fit();
