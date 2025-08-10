@@ -34,6 +34,7 @@ function handleDeleteKeyPress(e) {
  * @param {function} [initialConfig.onNodeCreated] - Callback for when a new node should be created.
  * @param {function} [initialConfig.onEdgeCreated] - Callback for when a new edge is drawn.
  * @param {function} [initialConfig.onElementsDeleted] - Callback for when elements should be deleted.
+ * @param {function} [initialConfig.onNodeLabelEdit] - Callback for when a node's label should be edited.
  */
 export function init(initialConfig) {
     // Store all configuration and callbacks
@@ -114,7 +115,7 @@ export function enableEditing() {
         }
     });
 
-    // 2. Add listener for creating nodes on double-click
+    // 2. Add listener for creating nodes on background double-click
     cy.on('dblclick', (event) => {
         // Only trigger if the background is clicked
         if (event.target === cy && config.onNodeCreated) {
@@ -122,7 +123,15 @@ export function enableEditing() {
         }
     });
 
-    // 3. Add key press listener for deleting elements
+    // 3. Add listener for editing a node's label on double-click
+    cy.on('dblclick', 'node', (event) => {
+        const node = event.target;
+        if (config.onNodeLabelEdit) {
+            config.onNodeLabelEdit(node);
+        }
+    });
+
+    // 4. Add key press listener for deleting elements
     window.addEventListener('keyup', handleDeleteKeyPress);
 
     // Make nodes selectable, but not draggable (dagre layout manages positions)

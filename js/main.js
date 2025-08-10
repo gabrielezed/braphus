@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (isEditMode) toggleEditMode(); // Exit edit mode before loading a new graph
             ui.hideWorkspaceModal();
+            ui.closeSidePanel(); // FIX: Close side panel before rendering a new graph
             const graphData = await api.getGraphById(graphId);
             graph.render(graphData);
             graph.fit();
@@ -189,26 +190,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Handles the creation of a new node on the canvas.
+     * @param {object} renderedPosition - The position where the user double-clicked.
      */
     function onNodeCreated(renderedPosition) {
         ui.showPromptModal({
             title: 'Create New Node',
             label: 'Enter a label for the new node:',
             onConfirm: async (label) => {
-                if (!label || label.trim() === '') return;
+                if (!label || label.trim() === '') {
+                    return; // Silently exit if no label is provided
+                }
 
+                // Create node data with a client-side generated UUID for robustness
                 const newNodeData = {
-                    id: `node-${Date.now()}`,
+                    id: crypto.randomUUID(),
                     label: label,
                     content: `# ${label}\n\nEnter your markdown content here.`
                 };
                 
                 try {
+                    // Call the API to create the node in the database
                     const createdNode = await api.createNodeInGraph(currentGraphId, newNodeData);
+                    // On success, add the node to the graph view for instant feedback
                     graph.addNode(createdNode);
                 } catch (error) {
                     console.error("Failed to create node:", error);
-                    alert("Error creating node on the server.");
+                    alert("Error creating node on the server. Please check the console for details.");
                 }
             }
         });
@@ -237,20 +244,53 @@ document.addEventListener('DOMContentLoaded', () => {
             title: "Delete Elements",
             message: `Are you sure you want to delete the ${elements.length} selected element(s)?`,
             onConfirm: async () => {
-                for (const el of elements) {
-                    try {
-                        if (el.isNode()) {
-                            await api.deleteNodeInGraph(currentGraphId, el.id());
-                        } else if (el.isEdge()) {
-                            await api.deleteEdgeInGraph(currentGraphId, el.id());
-                        }
-                    } catch (error) {
-                        console.error(`Failed to delete element ${el.id()}:`, error);
-                        alert(`Could not delete element ${el.id()}.`);
-                        return; // Stop deletion process on first error
+                // Create an array of promises for all deletion requests
+                const deletionPromises = elements.map(el => {
+                    if (el.isNode()) {
+                        return api.deleteNodeInGraph(currentGraphId, el.id());
+                    } else if (el.isEdge()) {
+                        return api.deleteEdgeInGraph(currentGraphId, el.id());
                     }
+                }).filter(p => p); // Filter out any undefined promises if element is neither node nor edge
+
+                try {
+                    // Execute all deletion promises in parallel for better performance
+                    await Promise.all(deletionPromises);
+                    // If all promises resolve successfully, remove the elements from the view
+                    elements.remove();
+                } catch (error) {
+                    // If any promise rejects, the view is not changed, preserving data consistency
+                    console.error("Failed to delete one or more elements:", error);
+                    alert("Error deleting elements. The graph has not been changed. Please check the console for details.");
                 }
-                elements.remove(); // Remove them from the view on success
+            }
+        });
+    }
+
+    /**
+     * Handles the editing of a node's label.
+     * @param {object} node - The cytoscape node object that was double-clicked.
+     */
+    function onNodeLabelEdit(node) {
+        ui.showPromptModal({
+            title: 'Edit Node Label',
+            label: 'Enter the new label:',
+            // Pre-fill the input with the current label
+            defaultValue: node.data('label'), 
+            onConfirm: async (newLabel) => {
+                if (!newLabel || newLabel.trim() === '') {
+                    return; // Silently exit if the new label is empty
+                }
+                
+                try {
+                    // Call the API to update the label in the database
+                    await api.updateNodeInGraph(currentGraphId, node.id(), { label: newLabel });
+                    // On success, update the node's data in the graph view
+                    node.data('label', newLabel);
+                } catch (error) {
+                    console.error(`Failed to update label for node ${node.id()}:`, error);
+                    alert("Error updating the node label. Please check the console for details.");
+                }
             }
         });
     }
@@ -290,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         onNodeCreated: onNodeCreated,
         onEdgeCreated: onEdgeCreated,
         onElementsDeleted: onElementsDeleted,
+        onNodeLabelEdit: onNodeLabelEdit // Wire up the new callback
     });
     initFileHandler(
         ui.importDropZone,
