@@ -1,7 +1,7 @@
 /**
  * Main application entry point.
  * Orchestrates the UI, Graph, and API Handler modules.
- * This version implements the new "Workspace" paradigm and Edit Mode.
+ * This version implements the new "Workspace" paradigm and a full graph editor.
  */
 
 // --- Module Imports ---
@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function handleLoadGraph(graphId) {
         try {
+            if (isEditMode) toggleEditMode(); // Exit edit mode before loading a new graph
             ui.hideWorkspaceModal();
             const graphData = await api.getGraphById(graphId);
             graph.render(graphData);
@@ -131,11 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
         isEditMode = !isEditMode;
         if (isEditMode) {
             ui.enterEditMode();
-            // graph.enableEditing(); // This will be implemented in Pillar 4
+            graph.enableEditing();
             closePanelAndReset();
         } else {
             ui.exitEditMode();
-            // graph.disableEditing(); // This will be implemented in Pillar 4
+            graph.disableEditing();
         }
     }
 
@@ -175,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleNodeSave(newContent) {
         if (!selectedNode || !currentGraphId) return;
         try {
-            // Use the new graph-aware API endpoint
             await api.updateNodeInGraph(currentGraphId, selectedNode.id, { content: newContent });
             graph.updateNodeContent(selectedNode.id, newContent);
             selectedNode.content = newContent; // Update local state
@@ -184,6 +184,77 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Error: Could not save changes to the server.");
         }
     }
+
+    // --- Callbacks for Graph Editing ---
+
+    /**
+     * Handles the creation of a new node on the canvas.
+     */
+    function onNodeCreated(renderedPosition) {
+        ui.showPromptModal({
+            title: 'Create New Node',
+            label: 'Enter a label for the new node:',
+            onConfirm: async (label) => {
+                if (!label || label.trim() === '') return;
+
+                const newNodeData = {
+                    id: `node-${Date.now()}`,
+                    label: label,
+                    content: `# ${label}\n\nEnter your markdown content here.`
+                };
+                
+                try {
+                    const createdNode = await api.createNodeInGraph(currentGraphId, newNodeData);
+                    graph.addNode(createdNode);
+                } catch (error) {
+                    console.error("Failed to create node:", error);
+                    alert("Error creating node on the server.");
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles the creation of a new edge on the canvas.
+     */
+    async function onEdgeCreated(sourceId, targetId, addedEdge) {
+        try {
+            const result = await api.createEdgeInGraph(currentGraphId, { source: sourceId, target: targetId });
+            // The edge is already drawn by cytoscape-edgehandles, we just need to give it the permanent ID from the server
+            addedEdge.data('id', result.data.id);
+        } catch(error) {
+            console.error("Failed to create edge:", error);
+            alert("Error creating edge. It will be removed.");
+            addedEdge.remove(); // Remove the edge from the view if the API call fails
+        }
+    }
+
+    /**
+     * Handles the deletion of selected nodes and edges.
+     */
+    function onElementsDeleted(elements) {
+        ui.showConfirmModal({
+            title: "Delete Elements",
+            message: `Are you sure you want to delete the ${elements.length} selected element(s)?`,
+            onConfirm: async () => {
+                for (const el of elements) {
+                    try {
+                        if (el.isNode()) {
+                            await api.deleteNodeInGraph(currentGraphId, el.id());
+                        } else if (el.isEdge()) {
+                            await api.deleteEdgeInGraph(currentGraphId, el.id());
+                        }
+                    } catch (error) {
+                        console.error(`Failed to delete element ${el.id()}:`, error);
+                        alert(`Could not delete element ${el.id()}.`);
+                        return; // Stop deletion process on first error
+                    }
+                }
+                elements.remove(); // Remove them from the view on success
+            }
+        });
+    }
+
 
     /**
      * Callback executed when a node in the graph is tapped.
@@ -214,7 +285,11 @@ document.addEventListener('DOMContentLoaded', () => {
     graph.init({
         container: cyContainer,
         onNodeTap: onNodeTap,
-        onCanvasTap: closePanelAndReset
+        onCanvasTap: closePanelAndReset,
+        // Pass editing callbacks
+        onNodeCreated: onNodeCreated,
+        onEdgeCreated: onEdgeCreated,
+        onElementsDeleted: onElementsDeleted,
     });
     initFileHandler(
         ui.importDropZone,

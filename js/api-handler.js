@@ -1,6 +1,6 @@
 /**
  * A module to handle all API communications with the backend server.
- * This version is updated to work with the multi-graph workspace API.
+ * This version is updated to work with the multi-graph workspace API and editor functionality.
  */
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -99,6 +99,78 @@ export async function updateNodeInGraph(graphId, nodeId, data) {
     });
     if (!response.ok) {
         throw new Error(`Failed to update node. Status: ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
+ * Creates a new node in a specific graph.
+ * @param {string} graphId - The ID of the graph.
+ * @param {object} nodeData - The data for the new node (id, label, content).
+ * @returns {Promise<object>} The newly created node data from the server.
+ */
+export async function createNodeInGraph(graphId, nodeData) {
+    const url = `${API_BASE_URL}/graphs/${graphId}/nodes`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nodeData),
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to create node. Status: ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
+ * Deletes a node from a specific graph.
+ * @param {string} graphId - The ID of the graph.
+ * @param {string} nodeId - The ID of the node to delete.
+ * @returns {Promise<object>} The confirmation message from the server.
+ */
+export async function deleteNodeInGraph(graphId, nodeId) {
+    const url = `${API_BASE_URL}/graphs/${graphId}/nodes/${nodeId}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete node. Status: ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
+ * Creates a new edge in a specific graph.
+ * @param {string} graphId - The ID of the graph.
+ * @param {object} edgeData - The data for the new edge (source, target).
+ * @returns {Promise<object>} The newly created edge data from the server.
+ */
+export async function createEdgeInGraph(graphId, edgeData) {
+    const url = `${API_BASE_URL}/graphs/${graphId}/edges`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(edgeData),
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to create edge. Status: ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
+ * Deletes an edge from a specific graph.
+ * @param {string} graphId - The ID of the graph.
+ * @param {string} edgeId - The ID of the edge to delete.
+ * @returns {Promise<object>} The confirmation message from the server.
+ */
+export async function deleteEdgeInGraph(graphId, edgeId) {
+    const url = `${API_BASE_URL}/graphs/${graphId}/edges/${edgeId}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete edge. Status: ${response.status}`);
     }
     return response.json();
 }
