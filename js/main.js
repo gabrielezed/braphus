@@ -1,7 +1,7 @@
 /**
  * Main application entry point.
  * Orchestrates the UI, Graph, and API Handler modules.
- * This version implements the new "Workspace" paradigm.
+ * This version implements the new "Workspace" paradigm and Edit Mode.
  */
 
 // --- Module Imports ---
@@ -20,11 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetViewBtn = document.getElementById('reset-view-btn');
     const searchInput = document.getElementById('search-input');
     const exportGraphBtn = document.getElementById('export-graph-btn');
+    const editGraphBtn = document.getElementById('edit-graph-btn');
 
     // --- Application State ---
     let selectedNode = null;
     let currentGraphId = null;
     let availableGraphs = [];
+    let isEditMode = false;
 
     // --- Core Application Logic ---
 
@@ -63,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             graph.render(graphData);
             graph.fit();
             currentGraphId = graphId;
+            ui.setEditButtonVisibility(true); // Show the edit button
         } catch (error) {
             console.error(`Failed to load graph ${graphId}:`, error);
             alert(`Error: Could not load the selected graph.`);
@@ -85,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (currentGraphId === graphId) {
                         graph.destroy();
                         currentGraphId = null;
+                        ui.setEditButtonVisibility(false); // Hide the edit button
                     }
                     await refreshWorkspace();
                 } catch (error) {
@@ -118,6 +122,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+    }
+
+    /**
+     * Toggles the application's graph editing mode.
+     */
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        if (isEditMode) {
+            ui.enterEditMode();
+            // graph.enableEditing(); // This will be implemented in Pillar 4
+            closePanelAndReset();
+        } else {
+            ui.exitEditMode();
+            // graph.disableEditing(); // This will be implemented in Pillar 4
+        }
     }
 
     /**
@@ -170,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Callback executed when a node in the graph is tapped.
      */
     function onNodeTap(nodeData) {
+        if (isEditMode) return; // Disable node selection in edit mode
         selectedNode = nodeData;
         ui.openSidePanel(nodeData.label, nodeData.content);
         ui.moveSearchContainer(true);
@@ -211,5 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
     zoomOutBtn.addEventListener('click', graph.zoomOut);
     resetViewBtn.addEventListener('click', graph.fit);
     exportGraphBtn.addEventListener('click', exportGraph);
+    editGraphBtn.addEventListener('click', toggleEditMode);
     searchInput.addEventListener('input', (e) => graph.search(e.target.value));
 });

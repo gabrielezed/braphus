@@ -14,6 +14,7 @@ const nodeContent = document.getElementById('node-content');
 const searchContainer = document.getElementById('search-container');
 const closePanelButton = document.getElementById('close-panel');
 const editNodeBtn = document.getElementById('edit-node-btn');
+const cyContainer = document.getElementById('cy');
 
 // --- NEW Workspace Modal References ---
 const workspaceModal = document.getElementById('workspace-modal');
@@ -30,6 +31,10 @@ const genericModalTitle = document.getElementById('generic-modal-title');
 const genericModalBody = document.getElementById('generic-modal-body');
 const genericModalFooter = document.getElementById('generic-modal-footer');
 const genericModalCloseBtn = document.getElementById('generic-modal-close-btn');
+
+// --- Edit Mode References ---
+const editGraphBtn = document.getElementById('edit-graph-btn');
+const editToolbar = document.getElementById('edit-toolbar');
 
 
 /**
@@ -291,6 +296,43 @@ export function showPromptModal({ title, label, onConfirm }) {
     genericModal.classList.remove('d-none');
     document.getElementById('modal-input').focus();
 }
+
+// --- Edit Mode UI Functions ---
+
+/**
+ * Sets the visibility of the main "Edit Graph" button.
+ * @param {boolean} visible - True to show the button, false to hide it.
+ */
+export function setEditButtonVisibility(visible) {
+    if (visible) {
+        editGraphBtn.classList.remove('d-none');
+    } else {
+        editGraphBtn.classList.add('d-none');
+        // Also ensure we exit edit mode if the button is hidden
+        exitEditMode();
+    }
+}
+
+/**
+ * Puts the UI into graph-editing mode.
+ */
+export function enterEditMode() {
+    editToolbar.classList.remove('d-none');
+    editGraphBtn.innerHTML = `<i class="bi bi-check-circle"></i> Finish Editing`;
+    editGraphBtn.classList.replace('btn-secondary', 'btn-success');
+    cyContainer.classList.add('edit-mode-active');
+}
+
+/**
+ * Takes the UI out of graph-editing mode.
+ */
+export function exitEditMode() {
+    editToolbar.classList.add('d-none');
+    editGraphBtn.innerHTML = `<i class="bi bi-pencil"></i> Edit Graph`;
+    editGraphBtn.classList.replace('btn-success', 'btn-secondary');
+    cyContainer.classList.remove('edit-mode-active');
+}
+
 
 /**
  * Initializes event listeners for UI elements.
